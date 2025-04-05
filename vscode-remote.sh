@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Set your Slurm parameters for GPU and CPU jobs here
-SBATCH_PARAM_CPU="-q ni -t 12:00:00 --mem=32G -c 8"
-SBATCH_PARAM_GPU="-q ng --gpus=1 -t 04:00:00 --mem=32G -c 8"
+SBATCH_PARAM_CPU="-t 16:00:00 --mem=32G -c 8"
+SBATCH_PARAM_GPU="--gpus=1 -t 04:00:00 --mem=32G -c 8"
 
 # The time you expect a job to start in (seconds)
 # If a job doesn't start within this time, the script will exit and cancel the pending job
@@ -33,11 +33,11 @@ function usage ()
             User USERNAME
             IdentityFile ~/.ssh/vscode-remote
             ProxyCommand ssh HPC-LOGIN \"bash --login -c 'vscode-remote cpu'\"
-            StrictHostKeyChecking no  
+            StrictHostKeyChecking no
 
     You can only have one job type at a time (cpu or gpu). If you want to switch job types, you have to first run 'cancel'.
     "
-} 
+}
 
 function query_slurm () {
     # only list states that can result in a running job
@@ -52,7 +52,7 @@ function query_slurm () {
         split=(${JOB_FULLNAME//%/ })
         JOB_PORT=${split[1]}
 
-        >&2 echo "Job is $JOB_STATE ( id: $JOB_ID, name: $JOB_FULLNAME${JOB_NODE:+, node: $JOB_NODE} )" 
+        >&2 echo "Job is $JOB_STATE ( id: $JOB_ID, name: $JOB_FULLNAME${JOB_NODE:+, node: $JOB_NODE} )"
     else
         JOB_ID=""
         JOB_FULLNAME=""
@@ -70,7 +70,7 @@ function cleanup () {
 }
 
 function timeout () {
-    if (( $(date +%s)-START > TIMEOUT )); then 
+    if (( $(date +%s)-START > TIMEOUT )); then
         >&2 echo "Timeout, exiting..."
         cleanup
         exit 1
@@ -108,7 +108,7 @@ function connect () {
 
     if [ -z "${JOB_STATE}" ]; then
         PORT=$(shuf -i 10000-65000 -n 1)
-        list=($(/usr/bin/sbatch -J $JOB_NAME%$PORT $SBATCH_PARAM $SCRIPT_DIR/vscode-remote-job.sh $PORT))
+        list=($(sbatch -J $JOB_NAME%$PORT $SBATCH_PARAM $SCRIPT_DIR/vscode-remote-job.sh $PORT))
         JOB_SUBMIT_ID=${list[3]}
         >&2 echo "Submitted new $JOB_NAME job (id: $JOB_SUBMIT_ID)"
     fi
@@ -121,9 +121,9 @@ function connect () {
 
     >&2 echo "Connecting to $JOB_NODE"
 
-    while ! nc -z $JOB_NODE $JOB_PORT; do 
+    while ! nc -z $JOB_NODE $JOB_PORT; do
         timeout
-        sleep 1 
+        sleep 1
     done
 
     nc $JOB_NODE $JOB_PORT
@@ -143,7 +143,7 @@ if [ ! -z "$1" ]; then
         help)   usage ;;
         *)  echo -e "Command '$1' does not exist" >&2
             usage; exit 1 ;;
-    esac  
+    esac
     exit 0
 else
     usage

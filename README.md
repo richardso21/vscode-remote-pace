@@ -1,6 +1,18 @@
 # vscode-remote-pace
 
-A one-click script to setup and connect vscode to a Slurm-based HPC compute node (e.g. Georgia Tech PACE ICE/Phoenix/Firebird/etc. login node) directly from the remote explorer.
+A one-click script to setup and connect vscode to a Slurm-based HPC compute
+node (e.g. Georgia Tech PACE ICE/Phoenix/Firebird/etc. login node) directly
+from the remote explorer.
+
+### Why?
+
+When you connect normally via vscode's remote SSH extension to PACE, it
+automatically connects you to a login node, and that node's resources are
+actively being shared with many other users (students). Very often, other
+people are running scripts, vscode instances, doing whatever in the login node
+which will eat up those resources leaving your vscode laggy. Instead, you want
+to reserve resources/a node just for your vscode instance to keep it quick
+while you do work that matters.
 
 ## Features
 - Automatically starts a batch job, or reuses an existing one, for vscode to connect to.

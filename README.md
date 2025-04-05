@@ -1,14 +1,15 @@
-# vscode-remote-hpc
+# vscode-remote-pace
 
-A one-click script to setup and connect vscode to a Slurm-based HPC compute node directly from the remote explorer. 
+A one-click script to setup and connect vscode to a Slurm-based HPC compute node (e.g. Georgia Tech PACE ICE/Phoenix/Firebird/etc. login node) directly from the remote explorer.
 
 ## Features
 - Automatically starts a batch job, or reuses an existing one, for vscode to connect to.
 - No need to manually execute the script on the HPC, just connect from the remote explorer and the script handles everything automagically through `ProxyCommand`.
 
 ## Requirements
+> __*PACE should meet all of these requirements, leaving here for reference.*__
 - `sshd` must be available on the compute node, installed in `/usr/sbin` or available in the PATH
-- A typical `sshd` installation is required, it must read login keys from `~/.ssh/authorized_keys` 
+- A typical `sshd` installation is required, it must read login keys from `~/.ssh/authorized_keys`
 - You must be allowed to run `sshd` in a batch job on an arbitrary port above 10000, and connect to it from the login node
 - The `nc` command (netcat) must be available on the HPC login node
 - Names of Slurm nodes must resolve to their internal IP addresses
@@ -17,17 +18,18 @@ A one-click script to setup and connect vscode to a Slurm-based HPC compute node
 These requirements are usually met, except if explicitly changed or forbidden by your system admin.
 
 ## Setup
+> __*Instructions below are specific to PACE ICE, but should be similar for Phonenix and others.*__
 
-Git clone the repo on the HPC login node (replace `HPC-LOGIN` with your own) and run the installer. 
+Git clone the repo on the PACE login node (replace `<username>` with your own) and run the installer.
 
 ```shell
-ssh HPC-LOGIN
-git clone git@github.com:gmertes/vscode-remote-hpc.git
-cd vscode-remote-hpc
+ssh <username>@login-ice.pace.gatech.edu
+git clone git@github.com:richardso21/vscode-remote-pace.git
+cd vscode-remote-pace
 bash install.sh
 ```
 
-The script will be installed in `~/bin` and added to your PATH. 
+The script will be installed in `~/bin` and added to your PATH.
 
 Open the installed script `~/bin/vscode-remote` with your favourite editor and edit the `SBATCH_PARAM_CPU` and `SBATCH_PARAM_GPU` parameters at the top according to your Slurm system. It is recommended to keep the job time (`-t`) as default or less, to not waste resources.
 
@@ -37,7 +39,7 @@ On your local machine, generate a new ssh key for vscode-remote:
 ssh-keygen -f ~/.ssh/vscode-remote -t ed25519 -N ""
 ```
 
-Copy the public key to your HPC `authorized_hosts`, you can use `ssh-copy-id`:
+Copy the public key to PACE login node's `authorized_hosts`, or you can use `ssh-copy-id`:
 
 ```shell
 ssh-copy-id -i ~/.ssh/vscode-remote HPC-LOGIN
@@ -53,13 +55,13 @@ Add the following entry to your local machine's `~/.ssh/config`. Change `USERNAM
 
 ```bash
 Host vscode-remote-cpu
-    User USERNAME
+    User <username>
     IdentityFile ~/.ssh/vscode-remote
-    ProxyCommand ssh HPC-LOGIN "bash --login -c 'vscode-remote cpu'"
+    ProxyCommand ssh <username>@login-ice.pace.gatech.edu "bash --login -c 'vscode-remote cpu'"
     StrictHostKeyChecking no
 ```
 
-You can change `vscode-remote cpu` to `vscode-remote gpu` to start a GPU job.
+You can add a new entry and change `vscode-remote cpu` to `vscode-remote gpu` to start a GPU job.
 
 ## Usage
 The `vscode-remote-cpu` host is now available in the VS Code remote explorer. Connecting to this host will automatically launch a batch job on a CPU node and connect to the node.
